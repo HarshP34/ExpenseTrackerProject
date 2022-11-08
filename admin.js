@@ -70,3 +70,24 @@ exports.postSignup=(req,res,next)=>{
    .then(()=>{res.status(200).json({success:true ,message:'Successfully Added'})})
    .catch(()=>{res.status(500).json({success:false ,message:'Error Occured'})});
 }
+
+exports.postLogin=(req,res,next)=>{
+    User.findAll().then(users=>{
+        users.forEach(user=>{
+            if(user.email===req.body.email)
+            {
+                if(user.password===req.body.password)
+                {
+                  res.status(200).json({success:true ,message:'User login sucessful'})
+                }
+                else
+                {
+                res.status(401).json({success:false,message:'User not Authorized'})
+                }
+            }
+        })
+         res.status(400).json({success:false ,message:'User not Found'})
+    }).catch((err)=>{console.log(err)});
+}
+
+

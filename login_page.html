@@ -40,31 +40,28 @@
                 email:Email.value,
                 password:Password.value
             }
-
-            axios.get('http://localhost:3000/admin/user/signup')
-            .then(res=>{
-                for(let i=0;i<res.data.length;i++)
+            async function login(loginDetail)
+            {
+                try{
+                let res=await axios.post('http://localhost:3000/admin/user/login',loginDetail);
+                if(res.status===200)
                 {
-                    if(res.data[i].email===Email.value)
-                    {
-                       flag=1;
-                        if(res.data[i].password===Password.value)
-                        {
-                            alert('User has Login Successfully')
-                        }
-                        else{
-                            myForm.innerHTML+='<h4 style="color:red"><u>Password is invalid</u></h4>';
-                        }
-                    }
+                    alert(`${res.data.message}`);
                 }
-                if(flag==0)
+                }catch(err){
+                    console.log(err.response.status);
+                    if(err.response.status===401)
                 {
-                    myForm.innerHTML+='<h4 style="color:red"><u>User is not Present</u></h4>';
+                    myForm.innerHTML+=`<h4 style="color:red"><u>${err.response.data.message}</u></h4>`;
                 }
-                else{
-                    flag=0;
+                else if(err.response.status===400)
+                {
+                    myForm.innerHTML+=`<h4 style="color:red"><u>${err.response.data.message}</u></h4>`;
                 }
-            })
+                }
+               
+            }
+            login(loginDetail);
           }
         }
 
