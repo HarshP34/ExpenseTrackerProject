@@ -105,10 +105,12 @@ function edituser(e)
  }
 }
 
+
+const token=localStorage.getItem('token');
     async function newUser(myObj)
      {
         try{
-            let data=await axios.post('http://localhost:3000/admin/expense',myObj)
+            let data=await axios.post('http://localhost:3000/admin/expense',myObj,{headers:{'Authentication':token}})
        shownonScreen(data.data);
         }catch(err){console.log(err)}
      }  
@@ -116,7 +118,7 @@ function edituser(e)
     async function editUser(myObj)
      {
         try{
-            let data2=await axios.put(`http://localhost:3000/admin/edit-expense/${userId}`,myObj); 
+            let data2=await axios.put(`http://localhost:3000/admin/edit-expense/${userId}`,myOb); 
         shownonScreen(data2.data);
         }catch(err){console.log(err)}
        
@@ -125,7 +127,7 @@ function edituser(e)
     async function reloadAsync()
      {
         try{
-            let res=await axios.get('http://localhost:3000/admin/expense');
+            let res=await axios.get('http://localhost:3000/admin/expense',{headers:{'Authentication':token}});
         res.data.forEach((user)=>{
             shownonScreen(user);
         })
@@ -137,12 +139,12 @@ function edituser(e)
      {
 
         try{
-            let res= await axios.get('http://localhost:3000/admin/expense');
+            let res= await axios.get('http://localhost:3000/admin/expense',{headers:{'Authentication':token}});
         for(var i=0;i<res.data.length;i++)
             {
                 if(li.innerHTML.indexOf(res.data[i].description)!=-1)
                 {
-                    axios.delete(`http://localhost:3000/admin/delete-expense/${res.data[i].id}`);
+                    axios.delete(`http://localhost:3000/admin/delete-expense/${res.data[i].id}`,{headers:{'Authentication':token}});
                 }
             }
         }catch(err){console.log(err)}

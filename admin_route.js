@@ -3,16 +3,17 @@ const express=require('express');
 const router=express.Router();
 
 const adminController=require('../controllers1/admin');
+const Authentication=require('../middleware/auth');
 
-router.post('/expense',adminController.addUser);
+router.post('/expense',Authentication.authentication,adminController.addUser);
 
-router.get('/expense',adminController.getUsers);
+router.get('/expense',Authentication.authentication,adminController.getUsers);
 
 router.put('/edit-expense/:id',adminController.posteditUser);
 
 router.get('/edit-expense/:id',adminController.geteditUser);
 
-router.delete('/delete-expense/:id',adminController.deleteUserById)
+router.delete('/delete-expense/:id',Authentication.authentication,adminController.deleteUserById)
 
 router.post('/user/signup',adminController.postSignup);
 
