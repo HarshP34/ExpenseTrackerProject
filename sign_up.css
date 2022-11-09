@@ -28,6 +28,19 @@ body{
     justify-content: center;
 }
 
+
+.expense-container
+{
+    border-radius: 5px;
+    left: 600px;
+    right: 200px;
+    top:100px;
+    position:absolute;
+    text-align: center;
+    justify-content: center;
+ 
+}
+
 #signup-form
 {
     margin-top: 20px;
@@ -53,37 +66,85 @@ body{
     align-content: center;
 }
 
+#my-form
+{
+    margin-top: 20px;
+    background-color:cornflowerblue;
+    border-radius: 10px;
+    border-color: black;
+    border-width: 5px;
+    width: 400px;
+    padding-bottom: 20px;
+    align-content: center;
+}
+
 #signup-form input
 {
-   border-radius: 5px;
-   border-color: black;
+    border-radius: 3px;
+    border-color: black;
+    height: 20px;
 }
 
 #login-form input
 {
-   border-radius: 5px;
+   border-radius: 3px;
    border-color: black;
+   height: 20px;
+}
+#my-form input
+{
+   border-radius: 3px;
+   border-color: black;
+   height: 20px;
 }
 #signup-form label{
     font-size:medium;
-   font-family: Verdana, Geneva, Tahoma, sans-serif;
+   font-family:Arial, Helvetica, sans-serif;
+  font-weight: 700;
 }
 
 #login-form label{
     font-size:medium;
-   font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-family:Arial, Helvetica, sans-serif;
+    font-weight: 700;
+}
+
+#my-form label{
+    font-size:medium;
+    font-family:Arial, Helvetica, sans-serif;
+    font-weight: 700;
 }
 
 #signup-form button
 {
-    background-color:coral;
+    background-color:salmon;
+    height: 30px;
+    width: 80px;
     color:black;
     border-radius: 5px;
     font-size: medium;
+    font-weight: 700;
 }
 #signup-form button:hover
 {
-    background-color:lightsalmon;
+    background-color:rgb(28, 181, 120);
+    color:black;
+}
+
+#add-expense
+{
+    background-color:salmon;
+    height: 50px;
+    width: 120px;
+    color:black;
+    border-radius: 9px;
+    font-size: medium;
+    font-weight: 700;
+    padding-bottom: 20px;
+}
+#add-expense:hover
+{
+    background-color:rgb(28, 181, 120);
     color:black;
 }
 
@@ -93,18 +154,42 @@ body{
 
 #login-form button
 {
-    background-color:coral;
+    background-color:salmon;
+    height: 30px;
+    width: 70px;
     color:black;
     border-radius: 5px;
     font-size: medium;
+    font-weight: 700;
 }
 #login-form button:hover
 {
-    background-color:lightsalmon;
+    background-color:rgb(28, 181, 120);
     color:black;
 }
 
 
 #login-form a{
     color: black;
+}
+
+#users button
+{
+    background-color: gray;
+    width: 50px;
+    height: 30px;
+    border-radius: 3px;
+    margin-left: 4px;
+    margin-top: 4px;
+}
+
+#users button:hover{
+    background-color:rgb(28, 181, 120);
+}
+
+.expense-container ul{
+    list-style: none;
+}
+.item{
+  margin-right: 10px;
 }

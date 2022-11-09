@@ -3,13 +3,12 @@ const User=require('../model1/user');
 const bcrypt=require('bcrypt');
 
  exports.addUser=(req,res,next)=>{
-    const expense=req.body.expense;
-    const category=req.body.category;
-    const description=req.body.description;
+    const {expense,category,description}=req.body;
+   console.log(req.body);
     Expense.create({
         expense:expense,
         category:category,
-        description:description
+        description:description,
     }).then((result)=>{
         res.json(result);
     })
@@ -27,7 +26,7 @@ exports.deleteUserById=(req,res,next)=>{
     const prodId=req.params.id;
     console.log(prodId);
     Expense.destroy({where :{id:prodId}})
-    .then()
+    .then(res.status(200).json({success:true ,message:'Expense deleted'}))
     .catch(err=>{console.log(err)})
 }
 

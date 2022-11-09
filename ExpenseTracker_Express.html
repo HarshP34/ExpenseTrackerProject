@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="sign_up.css">
+</head>
+<body>
+    <div class="expense-container">
+        <form id="my-form">
+        <h1 style="padding-top:10px ;">Expense Tracker</h1>
+        <label for="expense">Expense:</label><br>
+        <input type="text" id="expense" name="expense"><br>
+        <label for="description">Description:</label><br>
+        <input type="text" id="description" name="description"><br>
+        <label for="category">Category:</label><br>
+        <select name="category" id="category">
+            <option value="Grocary">Grocary</option>
+            <option value="Household">Household</option>
+            <option value="Education">Education</option>
+            <option value="Food">Food</option>
+            <option value="Transportion">Transportation</option>
+            <option value="Other">Other</option>
+           </select><br><br>
+        <input type="submit"  id="add-expense" class="btn" value="Add Expense"> 
+        <ul id="users"></ul>
+    </form>
+    </div>
+   
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
+<script>
+let flag=0;
+let userId;
+const myForm=document.getElementById('my-form');
+const userList=document.getElementById('users');
+const expense=document.getElementById('expense');
+const category=document.getElementById('category');
+const description=document.getElementById('description');
+
+myForm.addEventListener('submit',addUser);
+document.addEventListener('DOMContentLoaded',reload);
+
+function addUser(e)
+{
+    e.preventDefault();
+    const myObj={
+        expense:expense.value,
+        category:category.value,
+        description:description.value
+    }
+
+if(flag==0){
+    newUser(myObj);
+}
+else{
+   editUser(myObj)
+   flag=0;
+}
+}
+
+function reload(e){
+    e.preventDefault();
+     reloadAsync();
+}
+
+function shownonScreen(data)
+{
+ var li=document.createElement('li');
+ li.className='item';
+ li.appendChild(document.createTextNode(`${data.expense}-${data.description}-${data.category}`));
+ var deleteBtn=document.createElement('button');
+ deleteBtn.className='btn';
+ deleteBtn.appendChild(document.createTextNode('delete'));
+ li.appendChild(deleteBtn);
+ var editBtn=document.createElement('button');
+ editBtn.className='btn';
+ editBtn.appendChild(document.createTextNode('edit'));
+ li.appendChild(editBtn);
+ userList.appendChild(li);
+userList.addEventListener('click',deleteuser);
+userList.addEventListener('click',edituser);
+
+function deleteuser(e)
+{
+    if(e.target==deleteBtn)
+    {
+        let li=e.target.parentElement;
+        deleteAsync(li);
+        userList.removeChild(li); 
+    }
+}
+
+function edituser(e)
+ {
+    if(e.target==editBtn)
+    {
+      let li=e.target.parentElement;
+      flag=1;
+      editAsync(li);
+      userList.removeChild(li);     
+    }
+ }
+}
+
+    async function newUser(myObj)
+     {
+        try{
+            let data=await axios.post('http://localhost:3000/admin/expense',myObj)
+       shownonScreen(data.data);
+        }catch(err){console.log(err)}
+     }  
+    
+    async function editUser(myObj)
+     {
+        try{
+            let data2=await axios.put(`http://localhost:3000/admin/edit-expense/${userId}`,myObj); 
+        shownonScreen(data2.data);
+        }catch(err){console.log(err)}
+       
+     }
+
+    async function reloadAsync()
+     {
+        try{
+            let res=await axios.get('http://localhost:3000/admin/expense');
+        res.data.forEach((user)=>{
+            shownonScreen(user);
+        })
+        }catch(err){console.log(err)}
+        
+     }
+
+    async function deleteAsync(li)
+     {
+
+        try{
+            let res= await axios.get('http://localhost:3000/admin/expense');
+        for(var i=0;i<res.data.length;i++)
+            {
+                if(li.innerHTML.indexOf(res.data[i].description)!=-1)
+                {
+                    axios.delete(`http://localhost:3000/admin/delete-expense/${res.data[i].id}`);
+                }
+            }
+        }catch(err){console.log(err)}
+        
+     } 
+
+    async function editAsync(li)
+      {
+        let res=await axios.get('http://localhost:3000/admin/expense');
+        for(let i=0;i<res.data.length;i++)
+            {
+                if(li.innerHTML.indexOf(res.data[i].description)!=-1)
+                {
+                    myForm.querySelector('#expense').value=res.data[i].expense;
+                    myForm.querySelector('#category').value=res.data[i].category;
+                    myForm.querySelector('#description').value=res.data[i].description;
+                    userId=res.data[i].id;
+                }
+            }
+      }
+
+
+</script>
+</body>
+</html>

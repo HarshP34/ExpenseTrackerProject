@@ -23,7 +23,9 @@ const adminRoutes=require('./routes1/admin_route');
 app.use('/admin',adminRoutes);
 
 
-sequelize.sync()
+sequelize
+//.sync({force:true})
+.sync()
 .then()
 .catch(err=>console.log(err));
 
