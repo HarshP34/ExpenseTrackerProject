@@ -1,5 +1,6 @@
 const Expense=require('../model1/expense');
 const User=require('../model1/user');
+const bcrypt=require('bcrypt');
 
  exports.addUser=(req,res,next)=>{
     const expense=req.body.expense;
@@ -63,31 +64,40 @@ exports.getSignup=(req,res,next)=>{
 
 
 exports.postSignup=(req,res,next)=>{
-    console.log(req.body);
-   User.create({name:req.body.name,
-    email:req.body.email,
-    password:req.body.password})
-   .then(()=>{res.status(200).json({success:true ,message:'Successfully Added'})})
-   .catch(()=>{res.status(500).json({success:false ,message:'Error Occured'})});
+    const {name,email,password}=req.body;
+    const saltrounds=10;
+bcrypt.hash(password,saltrounds,async(err,hash)=>{
+    try{
+      console.log(err);
+      await User.create({name:name,email:email,password:hash});
+      res.status(200).json({success:true ,message:'Successfully Added'});
+    }catch(err){res.status(500).json({success:false ,message:'Error Occured'})}
+})    
 }
 
-exports.postLogin=(req,res,next)=>{
-    User.findAll().then(users=>{
-        users.forEach(user=>{
-            if(user.email===req.body.email)
-            {
-                if(user.password===req.body.password)
+exports.postLogin=async (req,res,next)=>{
+    try{
+        const {email,password}=req.body;
+        const user=await User.findAll({where: {email:email}})
+        if(user.length>0)
+        {
+            bcrypt.compare(password,user[0].password,(err,result)=>{
+                if(err)
+               throw new Error(`Something Went Wrong`);
+                if(result===true)
                 {
-                  res.status(200).json({success:true ,message:'User login sucessful'})
+                res.status(200).json({success:true ,message:'User login sucessful'})
                 }
-                else
-                {
-                res.status(401).json({success:false,message:'User not Authorized'})
+                else{
+                    res.status(401).json({success:false,message:'User not Authorized'})
                 }
-            }
-        })
-         res.status(400).json({success:false ,message:'User not Found'})
-    }).catch((err)=>{console.log(err)});
+               })            
+        }
+         else{
+            res.status(400).json({success:false ,message:'User not Found'})
+         }     
+    }
+catch(err){res.status(500).json({success:false ,message:`${err}`})};
 }
 
 
