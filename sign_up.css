@@ -5,6 +5,12 @@ body{
     background-color:lavender
 }
 
+
+body.premium
+{
+    background-color: grey;
+}
+
 .container
 {
     border-radius: 5px;
@@ -39,6 +45,17 @@ body{
     text-align: center;
     justify-content: center;
  
+}
+
+.forgot-password-container
+{
+    border-radius: 5px;
+    left: 600px;
+    right: 200px;
+    top:100px;
+    position:absolute;
+    text-align: center;
+    justify-content: center;
 }
 
 #signup-form
@@ -78,6 +95,18 @@ body{
     align-content: center;
 }
 
+#forgot-form
+{
+    margin-top: 20px;
+    background-color:cornflowerblue;
+    border-radius: 10px;
+    border-color: black;
+    border-width: 5px;
+    width: 300px;
+    padding-bottom: 20px;
+    align-content: center;
+}
+
 #signup-form input
 {
     border-radius: 3px;
@@ -96,6 +125,24 @@ body{
    border-radius: 3px;
    border-color: black;
    height: 20px;
+   margin-bottom: 10px;
+}
+
+#forgot-form input
+{
+   border-radius: 3px;
+   border-color: black;
+   height: 20px;
+   margin-bottom: 10px;
+}
+
+#my-form select
+{
+   border-radius: 3px;
+   border-color: black;
+   height: 27px;
+   width:170px ;
+   border-width: 2px;
 }
 #signup-form label{
     font-size:medium;
@@ -113,6 +160,14 @@ body{
     font-size:medium;
     font-family:Arial, Helvetica, sans-serif;
     font-weight: 700;
+    
+}
+
+#forgot-form label{
+    font-size:medium;
+    font-family:Arial, Helvetica, sans-serif;
+    font-weight: 700;
+    
 }
 
 #signup-form button
@@ -126,6 +181,22 @@ body{
     font-weight: 700;
 }
 #signup-form button:hover
+{
+    background-color:rgb(28, 181, 120);
+    color:black;
+}
+
+#forgot-form button
+{
+    background-color:salmon;
+    height: 30px;
+    width: 80px;
+    color:black;
+    border-radius: 5px;
+    font-size: medium;
+    font-weight: 700;
+}
+#forgot-form button:hover
 {
     background-color:rgb(28, 181, 120);
     color:black;
@@ -193,3 +264,4 @@ body{
 .item{
   margin-right: 10px;
 }
+
