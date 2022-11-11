@@ -14,7 +14,7 @@
         <label for="expense">Expense:</label><br>
         <input type="text" id="expense" name="expense"><br>
         <label for="description">Description:</label><br>
-        <input type="text" id="description" name="description"><br>
+        <input type="text" id="description" name="description" ><br>
         <label for="category">Category:</label><br>
         <select name="category" id="category">
             <option value="Grocary">Grocary</option>
@@ -25,12 +25,18 @@
             <option value="Other">Other</option>
            </select><br><br>
         <input type="submit"  id="add-expense" class="btn" value="Add Expense"> 
+     
         <ul id="users"></ul>
+       
+        <button id="rzp-button1">Buy Premium</button><br><br>
+        <button onclick="download()" id="downloadexpense" >Download File</button>
+
     </form>
     </div>
    
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
+   
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
 let flag=0;
 let userId;
@@ -39,13 +45,67 @@ const userList=document.getElementById('users');
 const expense=document.getElementById('expense');
 const category=document.getElementById('category');
 const description=document.getElementById('description');
+const addExpense=document.getElementById('add-expense');
+const token=localStorage.getItem('token');
 
-myForm.addEventListener('submit',addUser);
-document.addEventListener('DOMContentLoaded',reload);
+document.getElementById('rzp-button1').addEventListener('click',payment);
+async function payment(e) {
+    console.log(1);
+    e.preventDefault();
+    const response  = await axios.get('http://localhost:3000/purchase/premiummembership', {headers: {'Authentication': token} });
+    console.log(response);
+    var options =
+    {
+     "key": response.data.key_id, // Enter the Key ID generated from the Dashboard
+     "name": "Test Company",
+     "order_id": response.data.order.id, // For one time payment
+     "prefill": {
+       "name": "Test User",
+       "email": "test.user@example.com",
+       "contact": "7003442036"
+     },
+     "theme": {
+      "color": "#3399cc"
+     },
+     // This handler function will handle the success payment
+     "handler": function (response) {
+         console.log(response);
+         axios.post('http://localhost:3000/purchase/updatetransactionstatus',{
+             order_id: options.order_id,
+             payment_id: response.razorpay_payment_id,
+         }, {headers: {'Authentication' : token} }).then(() => {
+             alert('You are a Premium User Now')
+             document.body.style.backgroundColor=grey;
+         }).catch(() => {
+             alert('Something went wrong. Try Again!!!')
+         })
+     },
+  };
+ 
+  const rzp1 = new Razorpay(options);
+  rzp1.open();
 
+
+  rzp1.on('payment.failed', function (response){
+  alert(response.error.code);
+  alert(response.error.description);
+  alert(response.error.source);
+  alert(response.error.step);
+  alert(response.error.reason);
+  alert(response.error.metadata.order_id);
+  alert(response.error.metadata.payment_id);
+ });
+}
+
+
+
+
+
+addExpense.addEventListener('click',addUser);
 function addUser(e)
 {
     e.preventDefault();
+    console.log(1);
     const myObj={
         expense:expense.value,
         category:category.value,
@@ -103,48 +163,83 @@ function edituser(e)
       userList.removeChild(li);     
     }
  }
+
 }
 
 
-const token=localStorage.getItem('token');
-    async function newUser(myObj)
+
+    
+    
+    async function editUser(myObj)
+     {
+        try{
+            let data2=await axios.put(`http://localhost:3000/admin/edit-expense/${userId}`,myObj); 
+        shownonScreen(data2.data);
+        }catch(err){console.log(err)}
+       
+     }
+     document.addEventListener('DOMContentLoaded',reload);
+    async function reloadAsync()
+     {
+        try{
+            let res=await axios.get('http://localhost:3000/admin/expense',{headers:{'Authentication':token}}); 
+
+            if(res.data.ispremiumuser===true)
+            {
+                res.data.expenses.forEach((expense)=>{
+            shownonScreen(expense);
+        })
+                document.body.style.backgroundColor='grey';
+                const data=await axios.get('http://localhost:3000/admin/allusers',{headers:{'Authentication':token}});
+                console.log(data);
+                let ul=document.createElement('ul');
+                ul.className='leaderboard';
+                ul.appendChild(document.createTextNode('LeaderBoard'));
+                for(var i=0;i<data.data.length;i++)
+                {
+                    let user=document.createElement('li');
+                    user.className='leaderboard-user';
+                    user.appendChild(document.createTextNode(`${data.data[i].name}`));
+                    for(var j=0;j<data.data[i].expenses.length;j++)
+                    {
+                        let expense=document.createElement('li');
+                        expense.className='leaderboard-expense';
+                        expense.appendChild(document.createTextNode(`${data.data[i].expenses[j].expense}-${data.data[i].expenses[j].description}-${data.data[i].expenses[j].category}`));
+                        user.append(expense);
+                    }
+                    ul.append(user);
+                }
+
+                document.body.append(ul);
+            }
+            else{
+                res.data.expenses.forEach((expense)=>{
+            shownonScreen(expense);
+        })
+            }
+        
+        }catch(err){console.log(err)}  
+     }
+
+     async function newUser(myObj)
      {
         try{
             let data=await axios.post('http://localhost:3000/admin/expense',myObj,{headers:{'Authentication':token}})
        shownonScreen(data.data);
         }catch(err){console.log(err)}
-     }  
-    
-    async function editUser(myObj)
-     {
-        try{
-            let data2=await axios.put(`http://localhost:3000/admin/edit-expense/${userId}`,myOb); 
-        shownonScreen(data2.data);
-        }catch(err){console.log(err)}
-       
-     }
-
-    async function reloadAsync()
-     {
-        try{
-            let res=await axios.get('http://localhost:3000/admin/expense',{headers:{'Authentication':token}});
-        res.data.forEach((user)=>{
-            shownonScreen(user);
-        })
-        }catch(err){console.log(err)}
-        
-     }
+     } 
 
     async function deleteAsync(li)
      {
 
         try{
             let res= await axios.get('http://localhost:3000/admin/expense',{headers:{'Authentication':token}});
-        for(var i=0;i<res.data.length;i++)
+            console.log(res.data);
+        for(var i=0;i<res.data.expenses.length;i++)
             {
-                if(li.innerHTML.indexOf(res.data[i].description)!=-1)
+                if(li.innerHTML.indexOf(res.data.expenses[i].description)!=-1)
                 {
-                    axios.delete(`http://localhost:3000/admin/delete-expense/${res.data[i].id}`,{headers:{'Authentication':token}});
+                    axios.delete(`http://localhost:3000/admin/delete-expense/${res.data.expenses[i].id}`,{headers:{'Authentication':token}});
                 }
             }
         }catch(err){console.log(err)}
@@ -166,7 +261,28 @@ const token=localStorage.getItem('token');
             }
       }
 
+      function download()
+      {
+        axios.get('http://localhost:3000/admin/download',{headers:{'Authentication':token}}).then((response)=>{
+
+    if(response.status===201)
+    {
+        var a=document.createElement('a');
+        a.href=response.data.fileUrl;
+        a.download='myexpense.csv';
+        a.click();
+    }else{
+        throw new Error(response.data.message);
+    }
+
+        }).catch(err=>console.log(err));
+      }
+
+
+
+      
 
 </script>
+
 </body>
 </html>
