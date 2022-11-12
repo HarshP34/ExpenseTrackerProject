@@ -66,14 +66,28 @@ function uploadToS3(data,filename)
         })
        
 }
+const ITEMS_PER_PAGE=2;
 
 exports.getUsers=(req,res,next)=>{
     if(req.user.ispremiumuser===true)
     {
-        req.user.getExpenses().then(expenses=>{
+        const page=+req.query.page||1;
+        let totalItems;
+req.user.getExpenses().then((expense)=>{
+   totalItems=expense.length;
+}).then().catch(err=>console.log(err));
+
+        req.user.getExpenses({offset:(page-1)*ITEMS_PER_PAGE,limit:ITEMS_PER_PAGE}).then(expenses=>{
             req.user.getFiledownloadeds().then(files=>{
-                console.log(files);
-                res.status(200).json({expenses:expenses,ispremiumuser:true,downloadedfiles:files});
+                res.status(200).json({expenses:expenses,
+                    ispremiumuser:true,
+                    downloadedfiles:files,
+                    totalProducts:totalItems,
+                    hasNextPage:ITEMS_PER_PAGE*page<totalItems,
+                    hasPreviousPage:page>1,
+                    nextPage:page+1,
+                    previousPage:page-1,
+                    lastPage:Math.ceil(totalItems/ITEMS_PER_PAGE)});
 
             })
             
@@ -81,8 +95,21 @@ exports.getUsers=(req,res,next)=>{
           .catch(err=>{console.log(err)})
     }
     else{
-        req.user.getExpenses().then(expenses=>{
-            res.status(200).json({expenses:expenses,ispremiumuser:false});
+        const page=+req.query.page||1;
+        let totalItems;
+        req.user.getExpenses().then((expense)=>{
+            totalItems=expense.length;
+         }).then().catch(err=>console.log(err));
+
+        req.user.getExpenses({offset:(page-1)*ITEMS_PER_PAGE,limit:ITEMS_PER_PAGE}).then(expenses=>{
+            res.status(200).json({expenses:expenses,ispremiumuser:false,
+                totalProducts:totalItems,
+                hasNextPage:ITEMS_PER_PAGE*page<totalItems,
+                hasPreviousPage:page>1,
+                nextPage:page+1,
+                previousPage:page-1,
+                lastPage:Math.ceil(totalItems/ITEMS_PER_PAGE) 
+            });
           })
           .catch(err=>{console.log(err)})
 

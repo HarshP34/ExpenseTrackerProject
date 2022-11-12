@@ -265,3 +265,32 @@ body.premium
   margin-right: 10px;
 }
 
+
+body ul{
+    list-style: none;
+}
+
+.leaderboard
+{
+    font-size: large;
+    color: white;
+}
+
+.leaderboard-user
+{
+    
+    color:lavender;
+    padding-top: 10px;
+}
+
+.leaderboard-expense
+{
+    font-size:medium;
+    color:lime;
+    padding-top: 3px;
+}
+
+.active{
+    background-color:rgb(79, 201, 122);
+    font-size: medium;
+}
