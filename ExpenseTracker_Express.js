@@ -19,6 +19,7 @@ const Expense=require('./model1/expense');
 const User=require('./model1/user');
 const Order=require('./model1/order');
 const Forgotpassword=require('./model1/forgotpassword');
+const DownloadedFiles=require('./model1/filedownloaded');
 
 Expense.belongsTo(User);
 User.hasMany(Expense);
@@ -28,6 +29,10 @@ Order.belongsTo(User);
 
 User.hasMany(Forgotpassword);
 Forgotpassword.belongsTo(User);
+
+User.hasMany(DownloadedFiles);
+DownloadedFiles.belongsTo(User);
+
 
 const adminRoutes=require('./routes1/admin_route');
 const purchaseRoutes=require('./routes1/purchase');

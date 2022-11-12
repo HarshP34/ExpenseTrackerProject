@@ -1,102 +1,96 @@
-const Expense=require('../model1/expense');
-const User=require('../model1/user');
-const bcrypt=require('bcrypt');
+const Product = require('../models/product');
 
- exports.addUser=(req,res,next)=>{
-    const {expense,category,description}=req.body;
-   console.log(req.body);
-    Expense.create({
-        expense:expense,
-        category:category,
-        description:description,
-    }).then((result)=>{
-        res.json(result);
+
+exports.getAddProduct = (req, res, next) => {
+  res.render('admin/edit-product', {
+    pageTitle: 'Add Product',
+    path: '/admin/add-product',
+    editing:false
+  });
+};
+
+exports.postAddProduct = (req, res, next) => {
+  const title = req.body.title;
+  const imageUrl = req.body.imageUrl;
+  const price = req.body.price;
+  const description = req.body.description;
+  req.user.createProduct({
+    title:title,
+    price:price,
+    imageUrl:imageUrl,
+    description:description,
+    userId:req.user.id
+  })
+  .then(result=>{
+    res.redirect('/admin/products')
+  })
+  .catch(err=>console.log(err))
+};
+
+exports.getEditProduct = (req, res, next) => {
+  const editMode=req.query.edit;
+  if(!editMode)
+  {
+    return res.redirect('/')
+  }
+  const prodId=req.params.productId;
+  req.user.getProducts({where :{id:prodId}})
+  //Product.findByPk(prodId)
+  .then((products)=>{
+    const product=products[0];
+      if(!product)
+      {
+        return res.redirect('/');
+      }
+      res.render('admin/edit-product',{
+        pageTitle: 'Edit Product',
+        path: '/admin/edit-product',
+       editing:editMode,
+       product:product
+      });
     })
-    .catch(err=>console.log(err));
-}
+};
 
-exports.getUsers=(req,res,next)=>{
-    Expense.findAll().then(products=>{
-      res.json(products);
-    })
-    .catch(err=>{console.log(err)})
-}
+exports.postEditProduct=(req,res,next)=>{
+  
+   const prodId=req.body.productId;
+  const updatedtitle=req.body.title;
+  const updatedprice=req.body.price;
+  const updatedimageUrl=req.body.imageUrl;
+  const updatedDesc=req.body.description;
+  Product.findByPk(prodId)
+  .then(product=>{
+    product.title=updatedtitle;
+    product.price=updatedprice;
+    product.description=updatedDesc;
+    product.imageUrl=updatedimageUrl;
+    return product.save();
+  }).then(result=>{
+    console.log('UPDATED PRODUCT');
+    res.redirect('/admin/products')
+  })
+  .catch(err=>console.log(err))
+     
 
-exports.deleteUserById=(req,res,next)=>{
-    const prodId=req.params.id;
-    console.log(prodId);
-    Expense.destroy({where :{id:prodId}})
-    .then(res.status(200).json({success:true ,message:'Expense deleted'}))
-    .catch(err=>{console.log(err)})
-}
-
-exports.geteditUser=(req,res,next)=>{
-    const prodId=req.params.id;
-    Expense.findByPk(prodId).then((user)=>{
-        res.json(user);
-       res.redirect(`/admin/edit-expense`);
-    }).catch(err=>console.log(err));
-}
-
-exports.posteditUser=(req,res,next)=>{
-    const prodId=req.params.id;
-    Expense.findByPk(prodId)
-    .then((user)=>{
-        user.expense=req.body.expense;
-        user.category=req.body.category;
-        user.description=req.body.description;
-        return user.save();
-    })
-    .then((result)=>{
-       res.json(result);
-        console.log('User Edited');
-    })
-    .catch(err=>console.log(err));
-}
-
-exports.getSignup=(req,res,next)=>{
-    User.findAll()
-    .then(users=>{
-        res.json(users);
-    })
 }
 
 
-exports.postSignup=(req,res,next)=>{
-    const {name,email,password}=req.body;
-    const saltrounds=10;
-bcrypt.hash(password,saltrounds,async(err,hash)=>{
-    try{
-      console.log(err);
-      await User.create({name:name,email:email,password:hash});
-      res.status(200).json({success:true ,message:'Successfully Added'});
-    }catch(err){res.status(500).json({success:false ,message:'Error Occured'})}
-})    
-}
-
-exports.postLogin=async (req,res,next)=>{
-    try{
-        const {email,password}=req.body;
-        const user=await User.findAll({where: {email:email}})
-        if(user.length>0)
-        {
-            bcrypt.compare(password,user[0].password,(err,result)=>{
-                if(err)
-               throw new Error(`Something Went Wrong`);
-                if(result===true)
-                {
-                res.status(200).json({success:true ,message:'User login sucessful'})
-                }
-                else{
-                    res.status(401).json({success:false,message:'User not Authorized'})
-                }
-               })            
-        }
-         else{
-            res.status(400).json({success:false ,message:'User not Found'})
-         }     
-    }
-catch(err){res.status(500).json({success:false ,message:`${err}`})};
+exports.getDeleteProduct=(req,res,next)=>{
+   const prodId=req.params.productId;
+         Product.destroy({where: {id:prodId}}).then(()=>{
+          res.redirect('/admin/products');
+         }).catch(err=>console.log(err));       
 }
 
 
+exports.getProducts = (req, res, next) => {
+  req.user
+  .getProducts()
+  .then((products)=>{
+    res.render('admin/products', {
+      prods: products,
+      pageTitle: 'Admin Products',
+      path: '/admin/products'
+    });
+  }).catch(err=>console.log(err));
+};
