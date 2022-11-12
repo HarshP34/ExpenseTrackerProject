@@ -1,96 +1,187 @@
-const Product = require('../models/product');
+const Expense=require('../model1/expense');
+const User=require('../model1/user');
+const DownloadedFiles=require('../model1/filedownloaded');
+const bcrypt=require('bcrypt');
+const jwt=require('jsonwebtoken');
+const AWS=require('aws-sdk');
+const { S3 } = require('aws-sdk');
+const { DATE } = require('sequelize');
 
-
-exports.getAddProduct = (req, res, next) => {
-  res.render('admin/edit-product', {
-    pageTitle: 'Add Product',
-    path: '/admin/add-product',
-    editing:false
-  });
-};
-
-exports.postAddProduct = (req, res, next) => {
-  const title = req.body.title;
-  const imageUrl = req.body.imageUrl;
-  const price = req.body.price;
-  const description = req.body.description;
-  req.user.createProduct({
-    title:title,
-    price:price,
-    imageUrl:imageUrl,
-    description:description,
-    userId:req.user.id
-  })
-  .then(result=>{
-    res.redirect('/admin/products')
-  })
-  .catch(err=>console.log(err))
-};
-
-exports.getEditProduct = (req, res, next) => {
-  const editMode=req.query.edit;
-  if(!editMode)
-  {
-    return res.redirect('/')
-  }
-  const prodId=req.params.productId;
-  req.user.getProducts({where :{id:prodId}})
-  //Product.findByPk(prodId)
-  .then((products)=>{
-    const product=products[0];
-      if(!product)
-      {
-        return res.redirect('/');
-      }
-      res.render('admin/edit-product',{
-        pageTitle: 'Edit Product',
-        path: '/admin/edit-product',
-       editing:editMode,
-       product:product
-      });
+ exports.addUser=(req,res,next)=>{
+    const {expense,category,description}=req.body;
+   console.log(req.body);
+    req.user.createExpense({
+        expense:expense,
+        category:category,
+        description:description,
+    }).then((result)=>{
+        res.status(200).json(result);
     })
-};
-
-exports.postEditProduct=(req,res,next)=>{
-  
-   const prodId=req.body.productId;
-  const updatedtitle=req.body.title;
-  const updatedprice=req.body.price;
-  const updatedimageUrl=req.body.imageUrl;
-  const updatedDesc=req.body.description;
-  Product.findByPk(prodId)
-  .then(product=>{
-    product.title=updatedtitle;
-    product.price=updatedprice;
-    product.description=updatedDesc;
-    product.imageUrl=updatedimageUrl;
-    return product.save();
-  }).then(result=>{
-    console.log('UPDATED PRODUCT');
-    res.redirect('/admin/products')
-  })
-  .catch(err=>console.log(err))
-     
-
+    .catch(err=>console.log(err));
 }
 
 
-exports.getDeleteProduct=(req,res,next)=>{
-   const prodId=req.params.productId;
-         Product.destroy({where: {id:prodId}}).then(()=>{
-          res.redirect('/admin/products');
-         }).catch(err=>console.log(err));       
+exports.download=async(req,res,next)=>{
+    try{
+
+const expenses=await req.user.getExpenses();
+const stringifiedExpesnses=JSON.stringify(expenses);
+const userId=req.user.id;
+const filename=`Expenses${userId}/${new Date()}.txt`;
+const fileUrl=await uploadToS3(stringifiedExpesnses,filename);
+DownloadedFiles.create({fileUrl:fileUrl,expenseuserId:userId});
+res.status(200).json({fileUrl:fileUrl,success:true});
+    }catch(err){res.status(500).json({fileUrl:'',success:false,error:err})}
+}
+
+function uploadToS3(data,filename)
+{
+    const BUCKET_NAME=process.env.BUCKET_NAME;
+    const IAM_USER_KEY=process.env.IAM_USER_KEY;
+    const IAM_USER_SECRET=process.env.IAM_USER_SECRET;
+
+    let s3bucket=new AWS.S3({
+        accessKeyId:IAM_USER_KEY,
+        secretAccessKey:IAM_USER_SECRET,
+    })
+        var params={
+            Bucket:BUCKET_NAME,
+            Key:filename,
+            Body:data,
+            ACL:'public-read'
+        }
+
+        return new Promise((resolve,reject)=>{
+            s3bucket.upload(params,(err,s3response)=>{
+                if(err)
+                {
+                    reject(err);
+                    console.log('Something Went Wrong',err)
+                }
+                else{
+                    console.log('sucess',s3response)
+                    resolve(s3response.Location);
+                }
+            })
+        })
+       
+}
+
+exports.getUsers=(req,res,next)=>{
+    if(req.user.ispremiumuser===true)
+    {
+        req.user.getExpenses().then(expenses=>{
+            req.user.getFiledownloadeds().then(files=>{
+                console.log(files);
+                res.status(200).json({expenses:expenses,ispremiumuser:true,downloadedfiles:files});
+
+            })
+            
+          })
+          .catch(err=>{console.log(err)})
+    }
+    else{
+        req.user.getExpenses().then(expenses=>{
+            res.status(200).json({expenses:expenses,ispremiumuser:false});
+          })
+          .catch(err=>{console.log(err)})
+
+    }
+
+}
+
+exports.allUsers=(req,res,next)=>{
+    if(req.user.ispremiumuser===true)
+    {
+        User.findAll({include:['expenses']}).then(users=>{
+            res.status(200).json(users);
+        })
+    }
+
+}
+
+exports.deleteUserById=(req,res,next)=>{
+    const prodId=req.params.id;
+    console.log(prodId);
+     Expense.destroy({where :{id:prodId}})
+    .then(res.status(200).json({success:true ,message:'Expense deleted'}))
+    .catch(err=>{console.log(err)})
+}
+
+exports.geteditUser=(req,res,next)=>{
+    const prodId=req.params.id;
+    Expense.findByPk(prodId).then((user)=>{
+        res.json(user);
+       res.redirect(`/admin/edit-expense`);
+    }).catch(err=>console.log(err));
 }
 
 
-exports.getProducts = (req, res, next) => {
-  req.user
-  .getProducts()
-  .then((products)=>{
-    res.render('admin/products', {
-      prods: products,
-      pageTitle: 'Admin Products',
-      path: '/admin/products'
-    });
-  }).catch(err=>console.log(err));
-};
+exports.posteditUser=(req,res,next)=>{
+    const prodId=req.params.id;
+    Expense.findByPk(prodId)
+    .then((user)=>{
+        user.expense=req.body.expense;
+        user.category=req.body.category;
+        user.description=req.body.description;
+        return user.save();
+    })
+    .then((result)=>{
+       res.json(result);
+        console.log('User Edited');
+    })
+    .catch(err=>console.log(err));
+}
+
+exports.getSignup=(req,res,next)=>{
+    User.findAll()
+    .then(users=>{
+        res.json(users);
+    })
+}
+
+
+function generateAccessToken(id,name)
+{
+    return jwt.sign({expenseuserId:id,name:name},process.env.TOKEN_SECRET);
+}
+
+exports.postSignup=(req,res,next)=>{
+    const {name,email,password}=req.body;
+    const saltrounds=10;
+bcrypt.hash(password,saltrounds,async(err,hash)=>{
+    try{
+      console.log(err);
+      await User.create({name:name,email:email,password:hash});
+      res.status(200).json({success:true ,message:'Successfully Added'});
+
+    }catch(err){res.status(500).json({success:false ,message:'Error Occured'})}
+})    
+}
+
+exports.postLogin=async (req,res,next)=>{
+    try{
+        const {email,password}=req.body;
+        const user=await User.findAll({where: {email:email}})
+        if(user.length>0)
+        {
+            bcrypt.compare(password,user[0].password,(err,result)=>{
+                if(err)
+               throw new Error(`Something Went Wrong`);
+                if(result===true)
+                {
+                res.status(200).json({success:true ,message:'User login sucessful',token:generateAccessToken(user[0].id,user[0].name)})
+                }
+                else{
+                    res.status(401).json({success:false,message:'User not Authorized'})
+                }
+               })            
+        }
+         else{
+            res.status(400).json({success:false ,message:'User not Found'})
+         }     
+    }
+catch(err){res.status(500).json({success:false ,message:`${err}`})};
+}
+
+
