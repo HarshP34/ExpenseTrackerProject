@@ -66,9 +66,10 @@ function uploadToS3(data,filename)
         })
        
 }
-const ITEMS_PER_PAGE=2;
+
 
 exports.getUsers=(req,res,next)=>{
+    const ITEMS_PER_PAGE=+req.params.number;
     if(req.user.ispremiumuser===true)
     {
         const page=+req.query.page||1;

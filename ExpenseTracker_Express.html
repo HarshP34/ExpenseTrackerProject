@@ -24,8 +24,15 @@
             <option value="Transportion">Transportation</option>
             <option value="Other">Other</option>
            </select><br><br>
-        <input type="submit"  id="add-expense" class="btn" value="Add Expense"> 
-     
+        <input type="submit"  id="add-expense" class="btn" value="Add Expense"><br>
+        <label for="expense-rows">ExpenseRows:</label>
+        <select name="expense-rows" id="expense-rows" onchange="expenseRowChange()" style="width:40px ;">
+            <option value="2">2</option>
+            <option value="5">5</option>
+            <option value="7">7</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+           </select><br><br>
         <ul id="users"></ul>
        
         <button id="rzp-button1">Buy Premium</button><br><br>
@@ -48,12 +55,17 @@ const description=document.getElementById('description');
 const addExpense=document.getElementById('add-expense');
 const token=localStorage.getItem('token');
 const downloadBtn=document.getElementById('downloadexpense');
+const expenseRows=document.getElementById('expense-rows');
 
+function expenseRowChange()
+{
+    localStorage.setItem('expenseRows',expenseRows.value);
+}
 
 async function buttonCreation(data)
 {
     try{
-    const n=Math.ceil(data/2);
+    const n=Math.ceil(data/localStorage.getItem('expenseRows'));
     for(let i=1;i<=n;i++)
     {
 
@@ -73,7 +85,7 @@ async function buttonCreation(data)
     
         pageBtn.classList.add('active');
         userList.innerHTML='';
-        let res=await axios.get(`http://localhost:3000/admin/expense?page=${i}`,{headers:{'Authentication':token}}); 
+        let res=await axios.get(`http://localhost:3000/admin/expense/${localStorage.getItem('expenseRows')}?page=${i}`,{headers:{'Authentication':token}}); 
         res.data.expenses.forEach((expense)=>{
             shownonScreen(expense,i);
         })
@@ -226,7 +238,8 @@ function edituser(e)
     async function reloadAsync()
      {
         try{
-            let res=await axios.get('http://localhost:3000/admin/expense',{headers:{'Authentication':token}}); 
+             expenseRows.value=localStorage.getItem('expenseRows');
+            let res=await axios.get(`http://localhost:3000/admin/expense/${localStorage.getItem('expenseRows')}`,{headers:{'Authentication':token}}); 
             if(res.data.ispremiumuser===true)
             {console.log(res.data.totalProducts);
                 buttonCreation(res.data.totalProducts);
@@ -281,7 +294,7 @@ function edituser(e)
      {
 
         try{
-            let res= await axios.get(`http://localhost:3000/admin/expense?page=${i}`,{headers:{'Authentication':token}});
+            let res= await axios.get(`http://localhost:3000/admin/expense/${localStorage.getItem('expenseRows')}?page=${i}`,{headers:{'Authentication':token}});
         for(var i=0;i<res.data.expenses.length;i++)
             {
                 if(li.innerHTML.indexOf(res.data.expenses[i].description)!=-1)
